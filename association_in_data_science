@@ -1,0 +1,44 @@
+import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+
+dataset = [
+    ['Млеко', 'Леб', 'Јајца'],
+    ['Млеко', 'Пелени', 'Пиво', 'Јајца'],
+    ['Леб', 'Путер', 'Млеко'],
+    ['Леб', 'Путер'],
+    ['Пелени', 'Пиво']
+]
+from mlxtend.preprocessing import TransactionEncoder
+te = TransactionEncoder()
+te_data = te.fit(dataset).transform(dataset)
+df = pd.DataFrame(te_data, columns=te.columns_)
+print("Табела на кошнички:")
+display(df)
+frequent_itemsets = apriori(df, min_support=0.5, use_colnames=True)
+print("\nЧести комбинации на производи:")
+display(frequent_itemsets)
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.7)
+print("\nОткриени правила:")
+display(rules[['antecedents', 'consequents', 'support', 'confidence', 'lift']])
+!pip install pandas mlxtend openpyxl
+import pandas as pd
+df = pd.read_csv("C:\\Users\\atana\\Downloads\\OnlineRetail.csv\\OnlineRetail.csv", encoding='latin1')
+df.head()
+df.dropna(inplace=True)
+df = df[~df['InvoiceNo'].astype(str).str.startswith('C')]
+df = df[df['Country'] == 'United Kingdom']
+basket = (df.groupby(['InvoiceNo', 'Description'])['Quantity'].sum().unstack().reset_index().fillna(0).set_index('InvoiceNo'))
+def encode_units(x):    
+    return 1 if x >= 1 else 0
+
+basket_sets = basket.apply(lambda x: x.map(encode_units))
+basket_sets.head()
+from mlxtend.frequent_patterns import apriori, association_rules
+frequent_itemsets = apriori(basket_sets, min_support=0.02, use_colnames=True)
+frequent_itemsets.sort_values(by='support', ascending=False).head(10)basket_sets = basket_sets.astype(bool)
+
+frequent_itemsets = apriori(basket_sets, min_support=0.02, use_colnames=True)
+frequent_itemsets.sort_values(by='support', ascending=False).head(10)
+rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1.2)
+rules[['antecedents', 'consequents', 'support', 'confidence', 'lift']].sort_values(by='lift', ascending=False).head(10)
+
